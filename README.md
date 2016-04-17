@@ -1,6 +1,18 @@
-#AngelBike
+#AngelBike Firmware
 
 ##AngelHack 2016 @ São Paulo
+
+
+* Dependências
+  * U8glib (https://github.com/olikraus/u8glib)
+
+* Executando e carregando o código.
+  * Todo o procedimento pode ser executado através da Arduino IDE
+  * Instalar a U8glib (https://www.arduino.cc/en/Guide/Libraries)
+  * Abrir o sketch firmware.ino
+  * Usar a Arduino IDE para compilar e gravar
+
+* Referência
 
 | COMANDO  | DESCRIÇÃO |
 | ------------- | ------------- |

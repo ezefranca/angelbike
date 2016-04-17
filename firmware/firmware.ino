@@ -20,7 +20,7 @@
 #define TEMPERATURE A0
 #define RIGHT_LED 10
 #define LEFT_LED 11
- 
+
 #define NOTIF_FREQ 3000
 
 #define DIR_RIGHT_CMD 1
@@ -28,46 +28,46 @@
 #define NOT_CMD 3
 #define HOLE_CMD 8
 #define DIR_UP_CMD 9
-#define RISC_CMD 10
+#define RISK_CMD 10
 
 int cmdCode = 0, flip = 0, notif = 0, oldCmdCode, doPost = 1, doSplash = 0;
 volatile int sendAlert1 = 0, sendAlert2 = 0;
 
-SoftwareSerial BLE (BLE_RX,BLE_TX); // RX, TX
+SoftwareSerial BLE (BLE_RX, BLE_TX); // RX, TX
 U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_NO_ACK);
 
 void POST(void) {
   BLE.println("AT");
   delay(500);
-  if ( BLE.find("OK") ) u8g.drawStr(0,20, "BLE: OK!");
-  else u8g.drawStr(0,20, "BLE failed!");
+  if ( BLE.find("OK") ) u8g.drawStr(0, 20, "BLE: OK!");
+  else u8g.drawStr(0, 20, "BLE failed!");
 }
 
 void Splash(void) {
-  u8g.drawXBMP(0,0, logo_width, logo_height, logo_bits);
+  u8g.drawXBMP(0, 0, logo_width, logo_height, logo_bits);
 }
 
 void drawRightArrow() {
-  if (flip) u8g.drawXBMP(0,0, right_width, right_height, right_bits);
-  else u8g.drawXBMP(0,0, right_line_width, right_line_height, right_line_bits);
+  if (flip) u8g.drawXBMP(0, 0, right_width, right_height, right_bits);
+  else u8g.drawXBMP(0, 0, right_line_width, right_line_height, right_line_bits);
 }
 
 void drawLeftArrow() {
-  if (flip) u8g.drawXBMP(0,0, left_width, left_height, left_bits);
-  else u8g.drawXBMP(0,0, left_line_width, left_line_height, left_line_bits);
+  if (flip) u8g.drawXBMP(0, 0, left_width, left_height, left_bits);
+  else u8g.drawXBMP(0, 0, left_line_width, left_line_height, left_line_bits);
 }
 
 void drawUpArrow() {
-  if (flip) u8g.drawXBMP(50 ,0, up_width, up_height, up_bits);
+  if (flip) u8g.drawXBMP(50 , 0, up_width, up_height, up_bits);
   else u8g.drawXBMP(50, 0, up_line_width, up_line_height, up_line_bits);
 }
 
-void drawRisc() {
-  u8g.drawXBMP(0,0, risco_width, risco_height, risco_bits);
+void drawRisk() {
+  u8g.drawXBMP(0, 0, risco_width, risco_height, risco_bits);
 }
 
 void drawBuraco() {
-  u8g.drawXBMP(0,0, buraco_width, buraco_height, buraco_bits);
+  u8g.drawXBMP(0, 0, buraco_width, buraco_height, buraco_bits);
 }
 
 void notify(int code) {
@@ -77,7 +77,7 @@ void notify(int code) {
   delay(200 * (code - NOT_CMD + 1));
   noTone(BUZZER);
   delay(200 * (code - NOT_CMD + 1));
-  for(int i = 0; i < code - NOT_CMD; i++) {
+  for (int i = 0; i < code - NOT_CMD; i++) {
     tone(BUZZER, NOTIF_FREQ);
     delay(200 * (code - NOT_CMD + 1 + i));
     noTone(BUZZER);
@@ -85,11 +85,11 @@ void notify(int code) {
   }
 }
 
-void isrAlert1 (){
+void isrAlert1 () {
   sendAlert1 = 1;
 }
 
-void isrAlert2 (){
+void isrAlert2 () {
   sendAlert2 = 1;
 }
 
@@ -107,15 +107,15 @@ void setup(void) {
   pinMode(RIGHT_LED, OUTPUT);
   pinMode(LEFT_LED, OUTPUT);
 
-  
+
   digitalWrite(BLE_EN, LOW);
   delay(2000);
   digitalWrite(BLE_EN, HIGH);
-  delay(2000);  
-  
-  attachInterrupt(digitalPinToInterrupt(ALERT1), isrAlert1, FALLING); 
-  attachInterrupt(digitalPinToInterrupt(ALERT2), isrAlert2, FALLING); 
-    
+  delay(2000);
+
+  attachInterrupt(digitalPinToInterrupt(ALERT1), isrAlert1, FALLING);
+  attachInterrupt(digitalPinToInterrupt(ALERT2), isrAlert2, FALLING);
+
 }
 
 int mapCmd2Code(String cmd) {
@@ -145,8 +145,8 @@ int mapCmd2Code(String cmd) {
   else if (cmd.startsWith("DIR+UP") ) {
     return DIR_UP_CMD;
   }
-  else if (cmd.startsWith("RISC") ) {
-    return RISC_CMD;
+  else if (cmd.startsWith("RISK") ) {
+    return RISK_CMD;
   }
 }
 
@@ -156,28 +156,28 @@ void loop(void) {
   String cmd;
   int k;
   float temp;
-  
+
   cmd = BLE.readStringUntil('\n');
   if (cmd.length() >= 3) {
     oldCmdCode = cmdCode;
     cmdCode = mapCmd2Code(cmd);
     if (cmdCode > DIR_LEFT_CMD && cmdCode <= NOT_CMD + 4) {
       notify(cmdCode);
-      cmdCode = oldCmdCode; 
+      cmdCode = oldCmdCode;
     }
   }
-  
+
   // picture loop
-  u8g.firstPage();  
+  u8g.firstPage();
   do {
     if (doPost == 1) POST();
     if (doSplash == 1 && cmdCode == 0) Splash();
     else if (cmdCode == DIR_RIGHT_CMD) drawRightArrow();
     else if (cmdCode == DIR_LEFT_CMD) drawLeftArrow();
     else if (cmdCode == DIR_UP_CMD) drawUpArrow();
-    else if (cmdCode == RISC_CMD) drawRisc();
+    else if (cmdCode == RISK_CMD) drawRisk();
     else if (cmdCode == HOLE_CMD) drawBuraco();
-  } while( u8g.nextPage() );
+  } while ( u8g.nextPage() );
 
   //led auxiliar
   if (cmdCode == DIR_RIGHT_CMD ) {
@@ -209,7 +209,7 @@ void loop(void) {
   //temperatura
   temp = 0;
   for (k = 0; k < 10; k++) {
-    temp = temp + analogRead(TEMPERATURE)*100.0*5.0/1023.0;
+    temp = temp + analogRead(TEMPERATURE) * 100.0 * 5.0 / 1023.0;
     delay(5);
   }
   temp = temp / 10.0;

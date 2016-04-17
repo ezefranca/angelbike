@@ -17,6 +17,9 @@
 #define BUZZER 9
 #define ALERT1 2
 #define ALERT2 3
+#define TEMPERATURE A0
+#define RIGHT_LED 10
+#define LEFT_LED 11
  
 #define NOTIF_FREQ 3000
 
@@ -101,6 +104,8 @@ void setup(void) {
   pinMode(ALERT1, INPUT_PULLUP);
   pinMode(ALERT2, INPUT_PULLUP);
   pinMode(BLE_EN, OUTPUT);
+  pinMode(RIGHT_LED, OUTPUT);
+  pinMode(LEFT_LED, OUTPUT);
 
   
   digitalWrite(BLE_EN, LOW);
@@ -149,7 +154,10 @@ void loop(void) {
 
   //recebe comandos do BLE
   String cmd;
-  cmd = Serial.readStringUntil('\n');
+  int k;
+  float temp;
+  
+  cmd = BLE.readStringUntil('\n');
   if (cmd.length() >= 3) {
     oldCmdCode = cmdCode;
     cmdCode = mapCmd2Code(cmd);
@@ -171,6 +179,15 @@ void loop(void) {
     else if (cmdCode == HOLE_CMD) drawBuraco();
   } while( u8g.nextPage() );
 
+  //led auxiliar
+  if (cmdCode == DIR_RIGHT_CMD ) {
+    digitalWrite(RIGHT_LED, flip);
+  } else digitalWrite(RIGHT_LED, LOW);
+
+  if (cmdCode == DIR_LEFT_CMD ) {
+    digitalWrite(LEFT_LED, flip);
+  } else digitalWrite(LEFT_LED, LOW);
+
   //animacao
   flip = !flip;
 
@@ -188,6 +205,17 @@ void loop(void) {
     BLE.println("ALT+2");
     sendAlert2 = 0;
   }
-  delay(100);
+
+  //temperatura
+  temp = 0;
+  for (k = 0; k < 10; k++) {
+    temp = temp + analogRead(TEMPERATURE)*100.0*5.0/1023.0;
+    delay(5);
+  }
+  temp = temp / 10.0;
+  BLE.print("TEMP=");
+  BLE.println(temp);
+
+  delay(50);
 }
 
